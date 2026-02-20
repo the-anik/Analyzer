@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Report · ultimate analytics  · By Anik </title>
+    <!-- SheetJS for Excel & CSV -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <!-- PDF.js for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- Chart.js 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Flatpickr for date picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Export libraries: jsPDF + autoTable, and html2canvas for chart images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f1f5f9 0%, #e6edf5 100%);
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0b2b4f, #2563eb, #3898ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 i {
+            background: linear-gradient(145deg, #2563eb, #1e4b9e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.2rem;
+        }
+
+        .subtitle {
+            color: #2c455d;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-weight: 400;
+            background: rgba(255,255,255,0.4);
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            width: fit-content;
+        }
+
+        .badge-modern {
+            background: #2563eb10;
+            border: 1px solid #2563eb30;
+            color: #1e4b9e;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
+
+        .input-glass {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2.5rem;
+            padding: 1.8rem 2rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 15px 30px -12px rgba(0,30,60,0.2);
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 0.9rem 2.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 8px 18px -6px #1e3a8a70;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #ffffff30;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 18px 25px -8px #1e3a8a; background: linear-gradient(145deg, #1d4ed8, #1e3a8a); }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #2563eb60;
+            color: #1e4b9e;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-secondary:hover { background: white; border-color: #2563eb; }
+
+        .google-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 0.9rem 1.8rem;
+            border: 1px solid #d9e2ef;
+            border-radius: 60px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(4px);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .google-input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px #2563eb20; }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            align-items: flex-end;
+            margin: 1.5rem 0 2rem;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            padding: 1.2rem 2rem;
+            border-radius: 3rem;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 140px;
+        }
+        .filter-group label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: #2c3e5a;
+            margin-bottom: 0.25rem;
+        }
+        .filter-group select, .filter-group input {
+            background: white;
+            border: 1px solid #dde3ed;
+            border-radius: 40px;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #0b1e33;
+            outline: none;
+            cursor: pointer;
+        }
+        .filter-group input[type="text"] {
+            min-width: 160px;
+        }
+        .filter-badge {
+            background: #2563eb20;
+            border: 1px solid #2563eb60;
+            color: #1e4b9e;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .reset-btn {
+            background: none;
+            border: 1px dashed #64748b;
+            color: #1e293b;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .reset-btn:hover { background: #ffffff80; border: 1px solid #2563eb; color: #2563eb; }
+
+        .export-bar {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin: 1rem 0 2rem;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 1.5rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 10px 20px -10px rgba(0,30,50,0.1);
+            transition: 0.2s;
+        }
+        .kpi-card:hover { background: rgba(255,255,255,0.9); transform: scale(1.01); border-color: #a5c9ff; }
+        .kpi-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 5px; }
+        .kpi-value { font-size: 2.4rem; font-weight: 700; color: #0f263b; line-height: 1.1; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .chart-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 1.5rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 8px 18px -8px #1e293b1a;
+        }
+        .chart-title { font-size: 1rem; font-weight: 600; color: #1f3a5f; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+        .chart-title i { color: #2563eb; font-size: 1.1rem; }
+
+        .chart-card canvas {
+            max-height: 350px;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .staff-section {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.6);
+            margin-bottom: 2rem;
+        }
+        .section-header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 1rem 0.5rem; background: #f0f6fe; color: #24405c; font-weight: 600; border-bottom: 2px solid #cdddec; cursor: pointer; }
+        td { padding: 0.8rem 0.5rem; border-bottom: 1px solid #e2ecf9; color: #172c44; }
+        .progress-bar { background: #e0edfc; height: 8px; border-radius: 20px; width: 90px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #3898ff); border-radius: 20px; }
+
+        .status-badge { display: inline-block; padding: 0.3rem 1rem; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .status-completed { background: #d2f5e2; color: #0b5531; }
+        .status-inprogress { background: #d9e9ff; color: #153e75; }
+        .status-pending { background: #fff0cf; color: #8e6100; }
+        .status-other { background: #e2e8f0; color: #334155; }
+
+        .filter-summary {
+            background: #eff6ff; border-radius: 40px; padding: 0.8rem 2rem; margin: 1rem 0; font-size: 0.9rem;
+            border: 1px solid #b8d3fc; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center;
+        }
+
+        .pdf-warning {
+            background: #fff3cd; color: #856404; padding: 0.8rem 1.5rem; border-radius: 40px; font-size: 0.9rem;
+            margin-bottom: 1rem; border: 1px solid #ffeeba; display: flex; align-items: center; gap: 10px;
+        }
+
+        .special-section {
+            background: rgba(255,240,240,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 2rem;
+            border: 2px solid #f9acac;
+            margin-bottom: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(220,38,38,0.2);
+        }
+        .special-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            color: #b91c1c;
+            font-weight: 600;
+        }
+        .special-header i {
+            font-size: 2rem;
+        }
+        .special-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .special-kpi-card {
+            background: rgba(255,255,255,0.8);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            border: 1px solid #f9acac;
+        }
+
+        .hidden { display: none; }
+        .loader { border: 3px solid #eef3fc; border-top: 3px solid #2563eb; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .footer { text-align: center; color: #4a6587; margin-top: 2rem; }
+
+        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 12px; }
+        .tab-btn { padding: 10px 22px; background: white; border: 1px solid #cbd5e1; border-radius: 40px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.15s; color: #334155; }
+        .tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 8px -2px #3b82f666; }
+        .sheet-table { overflow-x: auto; background: white; border-radius: 20px; padding: 4px; border: 1px solid #e9eef2; max-height: 500px; overflow-y: auto; }
+        .sheet-table table { font-size: 0.85rem; }
+        .sheet-table th { position: sticky; top: 0; background: #f1f5f9; z-index: 10; }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <h1><i class="fas fa-chart-pie"></i> Work Report · Ultimate Analytics · By Anik</h1>
+    <div class="subtitle"><i class="fas fa-cloud-upload-alt"></i> Upload Excel, CSV, PDF – All Sheets Processed · VOID/Reissue/Refund Isolated</div>
+
+    <!-- Input panel -->
+    <div class="input-glass">
+        <div class="input-row">
+            <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .pdf" style="display: none;">
+            <button class="btn-primary" onclick="document.getElementById('fileInput').click()"><i class="fas fa-file-excel"></i> Choose File (Excel/CSV/PDF)</button>
+            <span id="file-info"><i class="far fa-file"></i> No File Selected</span>
+        </div>
+        <div class="input-row">
+            <input type="text" id="googleSheetUrl" class="google-input" placeholder="Public Google Sheets URL or Published CSV Link">
+            <button class="btn-primary" onclick="loadGoogleSheet()"><i class="fab fa-google"></i> Load Sheets</button>
+            <span id="google-info"></span>
+        </div>
+        <div id="pdfWarning" class="pdf-warning hidden">
+            <i class="fas fa-exclamation-triangle"></i> PDF Parsing Is Experimental – Best Results With Simple Tabular PDFs.
+        </div>
+    </div>
+
+    <!-- Filter bar (Supplier and Sector removed) -->
+    <div id="filterBar" class="filter-bar hidden">
+        <div class="filter-group">
+            <label><i class="fas fa-file-alt"></i> Sheet</label>
+            <select id="sheetFilter"><option value="All">All Sheets</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-globe"></i> Platform</label>
+            <select id="filterPlatform"><option value="All">All</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-tag"></i> Service</label>
+            <select id="filterService"><option value="All">All</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-check-circle"></i> Status</label>
+            <select id="filterStatus"><option value="All">All</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-user"></i> Agent</label>
+            <select id="filterAgent"><option value="All">All</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-calendar"></i> From (DDMMMYY)</label>
+            <input type="text" id="dateFrom" placeholder="e.g., 23Mar25">
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-calendar"></i> To</label>
+            <input type="text" id="dateTo" placeholder="e.g., 30Mar25">
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-search"></i> Global Search</label>
+            <input type="text" id="globalSearch" placeholder="PNR, Service, Agent...">
+        </div>
+        <div class="filter-badge" id="filterStatsBadge">
+            <i class="fas fa-filter"></i> <span id="filteredCount">0</span> Tasks
+        </div>
+        <button class="reset-btn" id="resetFilters"><i class="fas fa-undo-alt"></i> Reset All</button>
+    </div>
+
+    <!-- Active filter summary -->
+    <div id="filterSummary" class="filter-summary hidden"></div>
+
+    <!-- Export buttons -->
+    <div class="export-bar hidden" id="exportBar">
+        <button class="btn-secondary" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> Export to PDF</button>
+        <button class="btn-secondary" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Export to Excel</button>
+    </div>
+
+    <!-- Dashboard main content (hidden until file loaded) -->
+    <div id="dashboardContent" style="display: none;">
+        <!-- KPI cards -->
+        <div class="kpi-grid" id="kpiContainer"></div>
+
+        <!-- Charts row 1 -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-calendar-week"></i> Daily Entries (Stacked by Status)</div>
+                <canvas id="dailyStackedChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-chart-pie"></i> Status Distribution</div>
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-building"></i> Platform Split</div>
+                <canvas id="platformChart"></canvas>
+            </div>
+        </div>
+
+        <!-- row 2 -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-cogs"></i> Top Services</div>
+                <canvas id="serviceChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-user-tie"></i> Top Agents</div>
+                <canvas id="agentChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-truck"></i> PNR/Reference</div>
+                <canvas id="supplierChart"></canvas>
+            </div>
+        </div>
+
+        <!-- row 3 -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-map-marked-alt"></i> Top Sectors</div>
+                <canvas id="sectorChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-clock"></i> Avg TAT by Status</div>
+                <canvas id="tatStatusChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-chart-bar"></i> TAT Range</div>
+                <canvas id="tatRangeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- row 4 extra -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-percent"></i> Completion % by Platform</div>
+                <canvas id="completionPlatformChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-stopwatch"></i> Avg TAT by Platform</div>
+                <canvas id="tatPlatformChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-layer-group"></i> TAT by Service (Top 6)</div>
+                <canvas id="tatServiceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Agent performance table -->
+        <div class="staff-section">
+            <div class="section-header">
+                <h2 style="font-size: 1.6rem;"><i class="fas fa-users" style="color:#2563eb;"></i> Agent Performance</h2>
+                <div class="filter-box">
+                    <i class="fas fa-filter"></i>
+                    <select id="agentFilter" onchange="updateFilterStats()">
+                        <option value="All">All Agents</option>
+                    </select>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="agentTable">
+                    <thead><tr><th onclick="sortTable(0)">Agent</th><th onclick="sortTable(1)">Total</th><th onclick="sortTable(2)">Completed</th><th onclick="sortTable(3)">In Progress</th><th onclick="sortTable(4)">Pending</th><th>% Complete</th><th onclick="sortTable(6)">Avg TAT</th></tr></thead>
+                    <tbody id="agentTableBody"></tbody>
+                </table>
+            </div>
+            <div id="filterStats" class="filter-result" style="display: none; margin-top:1.5rem;">...</div>
+        </div>
+
+        <!-- Top tasks table -->
+        <div class="staff-section">
+            <div class="section-header">
+                <h2 style="font-size: 1.6rem;"><i class="fas fa-tasks" style="color:#2563eb;"></i> Tasks (Filtered View)</h2>
+                <div class="filter-box">
+                    <i class="fas fa-filter"></i>
+                    <select id="topTasksFilter" onchange="filterTopTasks()">
+                        <option value="All">All Statuses</option>
+                        <option value="Completed">Completed</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            <div style="max-height:400px; overflow-y:auto; border-radius:1rem;">
+                <table id="topTasksTable">
+                    <thead><tr><th onclick="sortTasks(0)">PNR</th><th onclick="sortTasks(1)">Service</th><th onclick="sortTasks(2)">Agent</th><th onclick="sortTasks(3)">Platform</th><th onclick="sortTasks(4)">Status</th><th onclick="sortTasks(5)">TAT</th></tr></thead>
+                    <tbody id="topTasksBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Raw Data Explorer (main sheets only) -->
+        <div class="staff-section">
+            <div class="section-header">
+                <h2 style="font-size: 1.6rem;"><i class="fas fa-table"></i> Raw Data Explorer (Main Sheets)</h2>
+            </div>
+            <div class="tabs" id="sheetTabs"></div>
+            <div class="sheet-table" id="sheetTableContainer">
+                <p style="padding: 20px; color: #64748b; text-align: center;">Select a sheet to view its data.</p>
+            </div>
+        </div>
+        <hr>
+        <div class="footer"><i class="fas fa-bolt"></i> All Sheets Analyzed · Only Tasks With Assigned Person Counted</div>
+    </div>
+
+    <!-- Button to show VOID/Reissue/Refund analysis -->
+    <div id="specialButtonContainer" class="hidden" style="text-align: center; margin: 2rem 0;">
+        <button class="btn-secondary" id="toggleSpecialBtn"><i class="fas fa-exclamation-triangle"></i> Show VOID / Reissue / Refund Analysis</button>
+    </div>
+
+    <!-- Special sheets analysis section (initially hidden) -->
+    <div id="specialSection" class="special-section hidden">
+        <div class="special-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h2 style="font-size: 1.8rem;">VOID / Reissue / Refund Sheets (Excluded From Main Analysis)</h2>
+        </div>
+        <div class="special-kpi-grid" id="specialKpiContainer"></div>
+        <div class="tabs" id="specialTabs"></div>
+        <div class="sheet-table" id="specialTableContainer">
+            <p style="padding: 20px; color: #64748b; text-align: center;">Select a sheet to view its data.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- Global state ----------
+        let fullData = [];               // main tasks (with agent, from non-special sheets)
+        let sheetsData = {};             // raw rows for main sheets (for explorer)
+        let specialSheetsData = {};       // raw rows for VOID/Reissue/Refund sheets
+        let specialTasks = [];             // tasks from special sheets (for analysis)
+        let filteredTasks = [];           // after applying filters (only from fullData)
+
+        let currentFilters = {
+            sheet: 'All',
+            platform: 'All',
+            service: 'All',
+            status: 'All',
+            agent: 'All',
+            dateFrom: null,
+            dateTo: null,
+            search: ''
+        };
+
+        let agentTotals = {};
+        let platformCounts = { 'B2B':0, 'B2C':0, 'In House':0, 'Other':0 };
+        let serviceCounts = {};
+        let supplierCounts = {};
+        let sectorCounts = {};
+        let dailyEntries = [];
+        let totalTasks = 0, completedTasks = 0, inProgressTasks = 0, pendingTasks = 0;
+        let tatByStatus = { 'Completed': { sum:0, count:0 }, 'In Progress': { sum:0, count:0 }, 'Pending': { sum:0, count:0 }, 'Other': { sum:0, count:0 } };
+        let tatRanges = { '<15 min':0, '15-30 min':0, '30-60 min':0, '1-2 hours':0, '>2 hours':0 };
+
+        // Special sheets stats
+        let specialTotal = 0, specialCompleted = 0, specialPending = 0, specialOther = 0;
+
+        let charts = {};
+        let agentSortCol = 0, agentSortDir = 1;
+        let tasksSortCol = 0, tasksSortDir = 1;
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // ---------- Helper functions ----------
+        function getColIndex(headerRow, possibleNames) {
+            if (!headerRow) return -1;
+            if (!Array.isArray(possibleNames)) possibleNames = [possibleNames];
+            for (let i = 0; i < headerRow.length; i++) {
+                if (!headerRow[i]) continue;
+                const cell = headerRow[i].toString().toLowerCase().trim();
+                for (let name of possibleNames) if (cell.includes(name.toLowerCase())) return i;
+            }
+            return -1;
+        }
+
+        function parseTAT(val) {
+            if (!val) return NaN;
+            const str = val.toString().toLowerCase().replace(/\s+/g, '');
+            const num = parseFloat(str);
+            if (isNaN(num)) return NaN;
+            if (str.includes('hour') || str.includes('hr')) return num * 60;
+            if (str.includes('min')) return num;
+            return num;
+        }
+
+        function normalizeStatus(s) {
+            if (!s) return 'Other';
+            const st = s.toString().toLowerCase().trim();
+            if (st.includes('complete') || st.includes('done') || st.includes('resolved') || st.includes('closed')) return 'Completed';
+            if (st.includes('progress') || st.includes('inprogress') || st.includes('ongoing') || st.includes('working')) return 'In Progress';
+            if (st.includes('pending') || st.includes('open') || st.includes('wait') || st.includes('hold')) return 'Pending';
+            return 'Other';
+        }
+
+        function getTATRange(m) {
+            if (m < 15) return '<15 min';
+            if (m < 30) return '15-30 min';
+            if (m < 60) return '30-60 min';
+            if (m < 120) return '1-2 hours';
+            return '>2 hours';
+        }
+
+        function parseDateFromSheetName(name) {
+            const pattern = /^([0-9]{2})([A-Z][a-z]{2})([0-9]{2})$/;
+            const m = name.match(pattern);
+            if (!m) return null;
+            const day = parseInt(m[1],10);
+            const monthStr = m[2];
+            const year = 2000 + parseInt(m[3],10);
+            const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+            const month = months[monthStr.charAt(0).toUpperCase() + monthStr.slice(1).toLowerCase()];
+            if (month === undefined) return null;
+            return new Date(year, month, day);
+        }
+
+        function isSpecialSheet(name) {
+            const lower = name.toLowerCase();
+            return lower.includes('void') || lower.includes('reissue') || lower.includes('refund');
+        }
+
+        function processRows(rows, sheetName) {
+            if (rows.length < 2) return;
+            const header = rows[0];
+
+            const platformIdx = getColIndex(header, ['Platform']);
+            const agentIdx = getColIndex(header, ['Agent','User Name','Assigned by','Assigned','Processed by','Staff Name']);
+            const serviceIdx = getColIndex(header, ['Service Name','Service']);
+            const pnrIdx = getColIndex(header, ['PNR/Reference','PNR','Reference number']);
+            const sectorIdx = getColIndex(header, ['Sector']);
+            const supplierIdx = getColIndex(header, ['Supplier']);
+            const tatIdx = getColIndex(header, ['TAT']);
+            const statusIdx = getColIndex(header, ['Status','Ticket Status']);
+
+            const sheetDate = parseDateFromSheetName(sheetName);
+            const special = isSpecialSheet(sheetName);
+
+            for (let r = 1; r < rows.length; r++) {
+                const row = rows[r];
+                if (!row || row.length === 0) continue;
+                let pnrVal = (pnrIdx !== -1 && row[pnrIdx]) ? row[pnrIdx].toString().trim() : '';
+                if (!pnrVal) continue;
+
+                const rawStatus = (statusIdx !== -1) ? row[statusIdx] : '';
+                const statusNorm = normalizeStatus(rawStatus);
+                const tatVal = (tatIdx !== -1) ? row[tatIdx] : '';
+                const tatNum = parseTAT(tatVal);
+                const platformVal = (platformIdx !== -1 && row[platformIdx]) ? row[platformIdx].toString().trim() : '';
+                const serviceVal = (serviceIdx !== -1 && row[serviceIdx]) ? row[serviceIdx].toString().trim() : '';
+                const supplierVal = (supplierIdx !== -1 && row[supplierIdx]) ? row[supplierIdx].toString().trim() : '';
+                const sectorVal = (sectorIdx !== -1 && row[sectorIdx]) ? row[sectorIdx].toString().trim() : '';
+                const agentVal = (agentIdx !== -1 && row[agentIdx]) ? row[agentIdx].toString().trim() : '';
+
+                if (!special) {
+                    if (!agentVal) continue;
+                    fullData.push({
+                        pnr: pnrVal,
+                        sheetName,
+                        dateObj: sheetDate,
+                        platform: platformVal,
+                        agent: agentVal,
+                        service: serviceVal,
+                        supplier: supplierVal,
+                        sector: sectorVal,
+                        status: statusNorm,
+                        tat: tatVal,
+                        tatNum: isNaN(tatNum) ? null : tatNum
+                    });
+                } else {
+                    specialTasks.push({
+                        pnr: pnrVal,
+                        sheetName,
+                        dateObj: sheetDate,
+                        platform: platformVal,
+                        agent: agentVal,
+                        service: serviceVal,
+                        supplier: supplierVal,
+                        sector: sectorVal,
+                        status: statusNorm,
+                        tat: tatVal,
+                        tatNum: isNaN(tatNum) ? null : tatNum
+                    });
+                }
+            }
+        }
+
+        function processExcelCSV(data) {
+            const wb = XLSX.read(data, { type: 'array' });
+            sheetsData = {};
+            specialSheetsData = {};
+            fullData = [];
+            specialTasks = [];
+
+            wb.SheetNames.forEach(sheetName => {
+                const sheet = wb.Sheets[sheetName];
+                if (!sheet) return;
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                const special = isSpecialSheet(sheetName);
+                if (special) {
+                    specialSheetsData[sheetName] = rows.slice(0, 1000);
+                } else {
+                    sheetsData[sheetName] = rows.slice(0, 1000);
+                }
+                processRows(rows, sheetName);
+            });
+            finalize();
+        }
+
+        async function processPDF(data) {
+            document.getElementById('pdfWarning').classList.remove('hidden');
+            const loadingTask = pdfjsLib.getDocument({ data });
+            const pdf = await loadingTask.promise;
+            const numPages = pdf.numPages;
+            let fullText = '';
+            for (let i = 1; i <= numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const strings = textContent.items.map(item => item.str);
+                fullText += strings.join(' ') + '\n';
+            }
+            const lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            let headerRow = null;
+            for (let i = 0; i < Math.min(lines.length, 20); i++) {
+                const line = lines[i];
+                if (line.includes('Platform') || line.includes('Agent') || line.includes('Service') || line.includes('PNR')) {
+                    headerRow = line.split(/\s{2,}/g).map(s => s.trim());
+                    break;
+                }
+            }
+            if (!headerRow) headerRow = lines[0].split(/\s{2,}/g).map(s => s.trim());
+            let rows = [headerRow];
+            for (let i = 1; i < lines.length; i++) {
+                const cells = lines[i].split(/\s{2,}/g).map(s => s.trim());
+                while (cells.length < headerRow.length) cells.push('');
+                rows.push(cells);
+            }
+            const sheetName = 'PDF';
+            if (isSpecialSheet(sheetName)) {
+                specialSheetsData[sheetName] = rows.slice(0, 1000);
+            } else {
+                sheetsData[sheetName] = rows.slice(0, 1000);
+            }
+            fullData = [];
+            specialTasks = [];
+            processRows(rows, sheetName);
+            finalize();
+        }
+
+        function finalize() {
+            populateFilterOptions();
+            const sheetSelect = document.getElementById('sheetFilter');
+            sheetSelect.innerHTML = '<option value="All">All Sheets</option>';
+            Object.keys(sheetsData).forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                sheetSelect.appendChild(opt);
+            });
+            filteredTasks = fullData.slice();
+            document.getElementById('filteredCount').textContent = filteredTasks.length;
+            document.getElementById('filterBar').classList.remove('hidden');
+            document.getElementById('exportBar').classList.remove('hidden');
+            renderSheetTabs();
+
+            if (Object.keys(specialSheetsData).length > 0) {
+                document.getElementById('specialButtonContainer').classList.remove('hidden');
+                renderSpecialStats();
+                renderSpecialTabs();
+            } else {
+                document.getElementById('specialButtonContainer').classList.add('hidden');
+                document.getElementById('specialSection').classList.add('hidden');
+            }
+
+            applyFilters();
+            document.getElementById('dashboardContent').style.display = 'block';
+        }
+
+        function populateFilterOptions() {
+            const unique = (key) => [...new Set(fullData.map(d => d[key]).filter(Boolean))].sort();
+            const setOptions = (id, arr) => {
+                const sel = document.getElementById(id);
+                sel.innerHTML = '<option value="All">All</option>' + arr.map(v => `<option value="${v}">${v}</option>`).join('');
+            };
+            setOptions('filterPlatform', unique('platform'));
+            setOptions('filterService', unique('service'));
+            setOptions('filterStatus', unique('status'));
+            setOptions('filterAgent', unique('agent'));
+        }
+
+        window.applyFilters = function() {
+            currentFilters.sheet = document.getElementById('sheetFilter').value;
+            currentFilters.platform = document.getElementById('filterPlatform').value;
+            currentFilters.service = document.getElementById('filterService').value;
+            currentFilters.status = document.getElementById('filterStatus').value;
+            currentFilters.agent = document.getElementById('filterAgent').value;
+            const fromStr = document.getElementById('dateFrom').value;
+            const toStr = document.getElementById('dateTo').value;
+            currentFilters.dateFrom = fromStr ? parseDateFromSheetName(fromStr) : null;
+            currentFilters.dateTo = toStr ? parseDateFromSheetName(toStr) : null;
+            currentFilters.search = document.getElementById('globalSearch').value.toLowerCase().trim();
+
+            filteredTasks = fullData.filter(row => {
+                if (currentFilters.sheet !== 'All' && row.sheetName !== currentFilters.sheet) return false;
+                if (currentFilters.platform !== 'All' && row.platform !== currentFilters.platform) return false;
+                if (currentFilters.service !== 'All' && row.service !== currentFilters.service) return false;
+                if (currentFilters.status !== 'All' && row.status !== currentFilters.status) return false;
+                if (currentFilters.agent !== 'All' && row.agent !== currentFilters.agent) return false;
+                if (currentFilters.dateFrom && row.dateObj && row.dateObj < currentFilters.dateFrom) return false;
+                if (currentFilters.dateTo && row.dateObj && row.dateObj > currentFilters.dateTo) return false;
+                if (currentFilters.search) {
+                    const haystack = (row.pnr + ' ' + row.service + ' ' + row.agent + ' ' + row.platform + ' ' + row.status + ' ' + row.tat + ' ' + row.sector + ' ' + row.supplier).toLowerCase();
+                    return haystack.includes(currentFilters.search);
+                }
+                return true;
+            });
+
+            document.getElementById('filteredCount').textContent = filteredTasks.length;
+
+            const active = [];
+            if (currentFilters.sheet !== 'All') active.push(`Sheet: ${currentFilters.sheet}`);
+            if (currentFilters.platform !== 'All') active.push(`Platform: ${currentFilters.platform}`);
+            if (currentFilters.service !== 'All') active.push(`Service: ${currentFilters.service}`);
+            if (currentFilters.status !== 'All') active.push(`Status: ${currentFilters.status}`);
+            if (currentFilters.agent !== 'All') active.push(`Agent: ${currentFilters.agent}`);
+            if (currentFilters.dateFrom) active.push(`From ${document.getElementById('dateFrom').value}`);
+            if (currentFilters.dateTo) active.push(`To ${document.getElementById('dateTo').value}`);
+            if (currentFilters.search) active.push(`Search: "${currentFilters.search}"`);
+            const summaryDiv = document.getElementById('filterSummary');
+            if (active.length) {
+                summaryDiv.innerHTML = '<i class="fas fa-filter"></i> Active: ' + active.join(' · ');
+                summaryDiv.classList.remove('hidden');
+            } else summaryDiv.classList.add('hidden');
+
+            recalcAggregates();
+            renderKPIs();
+            renderAgentTable();
+            populateAgentFilter();
+            renderCharts();
+            renderTopTasks();
+        };
+
+        function recalcAggregates() {
+            agentTotals = {};
+            platformCounts = { 'B2B':0, 'B2C':0, 'In House':0, 'Other':0 };
+            serviceCounts = {};
+            supplierCounts = {};
+            sectorCounts = {};
+            totalTasks = filteredTasks.length;
+            completedTasks = 0; inProgressTasks = 0; pendingTasks = 0;
+            tatByStatus = { 'Completed': { sum:0, count:0 }, 'In Progress': { sum:0, count:0 }, 'Pending': { sum:0, count:0 }, 'Other': { sum:0, count:0 } };
+            tatRanges = { '<15 min':0, '15-30 min':0, '30-60 min':0, '1-2 hours':0, '>2 hours':0 };
+            let dailyMap = {};
+
+            filteredTasks.forEach(t => {
+                if (t.status === 'Completed') completedTasks++;
+                else if (t.status === 'In Progress') inProgressTasks++;
+                else if (t.status === 'Pending') pendingTasks++;
+
+                if (t.tatNum !== null) {
+                    tatByStatus[t.status].sum += t.tatNum;
+                    tatByStatus[t.status].count++;
+                    tatRanges[getTATRange(t.tatNum)]++;
+                }
+
+                if (t.platform) {
+                    let plat = t.platform;
+                    if (plat.includes('B2B')) platformCounts['B2B']++;
+                    else if (plat.includes('B2C')) platformCounts['B2C']++;
+                    else if (plat.toLowerCase().includes('in house')) platformCounts['In House']++;
+                    else platformCounts['Other']++;
+                }
+
+                if (t.service) serviceCounts[t.service] = (serviceCounts[t.service] || 0) + 1;
+                if (t.supplier) supplierCounts[t.supplier] = (supplierCounts[t.supplier] || 0) + 1;
+                if (t.sector) sectorCounts[t.sector] = (sectorCounts[t.sector] || 0) + 1;
+
+                if (t.agent) {
+                    if (!agentTotals[t.agent]) agentTotals[t.agent] = { total:0, completed:0, inProgress:0, pending:0, tatSum:0, tatCount:0 };
+                    let a = agentTotals[t.agent];
+                    a.total++;
+                    if (t.status === 'Completed') a.completed++;
+                    else if (t.status === 'In Progress') a.inProgress++;
+                    else if (t.status === 'Pending') a.pending++;
+                    if (t.tatNum !== null) { a.tatSum += t.tatNum; a.tatCount++; }
+                }
+
+                if (t.dateObj) {
+                    dailyMap[t.sheetName] = dailyMap[t.sheetName] || { Completed:0, 'In Progress':0, Pending:0, Other:0 };
+                    dailyMap[t.sheetName][t.status] = (dailyMap[t.sheetName][t.status] || 0) + 1;
+                }
+            });
+
+            dailyEntries = Object.entries(dailyMap).map(([sheet, counts]) => ({
+                sheetName: sheet,
+                Completed: counts.Completed || 0,
+                InProgress: counts['In Progress'] || 0,
+                Pending: counts.Pending || 0,
+                Other: counts.Other || 0
+            })).sort((a,b) => a.sheetName.localeCompare(b.sheetName));
+        }
+
+        function renderKPIs() {
+            const other = totalTasks - completedTasks - inProgressTasks - pendingTasks;
+            const completionRate = totalTasks ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0;
+            document.getElementById('kpiContainer').innerHTML = `
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-tasks"></i> Total Tasks</div><div class="kpi-value">${totalTasks}</div></div>
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-check-circle"></i> Completed</div><div class="kpi-value">${completedTasks}</div></div>
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-spinner"></i> In Progress</div><div class="kpi-value">${inProgressTasks}</div></div>
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-hourglass-half"></i> Pending</div><div class="kpi-value">${pendingTasks}</div></div>
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-percent"></i> Completion %</div><div class="kpi-value">${completionRate}%</div></div>
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-clock"></i> Avg TAT (min)</div><div class="kpi-value">${tatByStatus.Completed.count ? (tatByStatus.Completed.sum / tatByStatus.Completed.count).toFixed(1) : '-'}</div></div>
+                <div class="kpi-card"><div class="kpi-title"><i class="fas fa-users"></i> Agents Active</div><div class="kpi-value">${Object.keys(agentTotals).length}</div></div>
+            `;
+        }
+
+        function renderAgentTable() {
+            let html = '';
+            Object.keys(agentTotals).sort().forEach(name => {
+                const d = agentTotals[name];
+                const pct = d.total ? ((d.completed / d.total) * 100).toFixed(1) : 0;
+                const avgTat = d.tatCount ? (d.tatSum / d.tatCount).toFixed(1) : '-';
+                html += `<tr><td><strong>${name}</strong></td><td>${d.total}</td><td>${d.completed}</td><td>${d.inProgress}</td><td>${d.pending}</td><td><div style="display:flex; align-items:center; gap:8px;"><span>${pct}%</span><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;"></div></div></div></td><td>${avgTat}</td></tr>`;
+            });
+            document.getElementById('agentTableBody').innerHTML = html;
+        }
+
+        function populateAgentFilter() {
+            let sel = document.getElementById('agentFilter');
+            sel.innerHTML = '<option value="All">All Agents</option>' + Object.keys(agentTotals).map(a => `<option value="${a}">${a}</option>`).join('');
+        }
+
+        window.updateFilterStats = function() {
+            const selected = document.getElementById('agentFilter').value;
+            const statsDiv = document.getElementById('filterStats');
+            if (selected === 'All') { statsDiv.style.display = 'none'; return; }
+            statsDiv.style.display = 'flex';
+            document.getElementById('selectedAgentName').textContent = selected;
+            const d = agentTotals[selected] || { total:0, completed:0, inProgress:0, pending:0 };
+            document.getElementById('selectedTasks').textContent = d.total;
+            document.getElementById('selectedCompleted').textContent = d.completed;
+            document.getElementById('selectedInProgress').textContent = d.inProgress;
+            document.getElementById('selectedPending').textContent = d.pending;
+        };
+
+        const colorPalette = [
+            '#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#6A4C93',
+            '#1985A1', '#8F2D56', '#D65108', '#4A6FA5', '#B56576',
+            '#0B7A75', '#9C89B8', '#F4A261', '#E76F51', '#2A9D8F'
+        ];
+
+        function renderCharts() {
+            Object.values(charts).forEach(c => c?.destroy());
+            charts = {};
+
+            const ctxDaily = document.getElementById('dailyStackedChart').getContext('2d');
+            charts.dailyStacked = new Chart(ctxDaily, {
+                type: 'bar',
+                data: {
+                    labels: dailyEntries.map(d => d.sheetName),
+                    datasets: [
+                        { label: 'Completed', data: dailyEntries.map(d => d.Completed), backgroundColor: '#2E86AB' },
+                        { label: 'In Progress', data: dailyEntries.map(d => d.InProgress), backgroundColor: '#A23B72' },
+                        { label: 'Pending', data: dailyEntries.map(d => d.Pending), backgroundColor: '#F18F01' },
+                        { label: 'Other', data: dailyEntries.map(d => d.Other), backgroundColor: '#6A4C93' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+            });
+
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            const other = totalTasks - completedTasks - inProgressTasks - pendingTasks;
+            charts.status = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: { labels: ['Completed', 'In Progress', 'Pending', 'Other'], datasets: [{ data: [completedTasks, inProgressTasks, pendingTasks, other], backgroundColor: ['#2E86AB', '#A23B72', '#F18F01', '#6A4C93'] }] }
+            });
+
+            const ctxPlatform = document.getElementById('platformChart').getContext('2d');
+            const platLabels = Object.keys(platformCounts).filter(k => platformCounts[k] > 0);
+            const platData = platLabels.map(k => platformCounts[k]);
+            charts.platform = new Chart(ctxPlatform, {
+                type: 'doughnut',
+                data: { labels: platLabels, datasets: [{ data: platData, backgroundColor: platLabels.map((_,i) => colorPalette[i % colorPalette.length]) }] }
+            });
+
+            const svc = Object.entries(serviceCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+            const svcLabels = svc.map(s=>s[0].length>20?s[0].substring(0,18)+'…':s[0]);
+            const svcData = svc.map(s=>s[1]);
+            charts.service = new Chart(document.getElementById('serviceChart'), {
+                type: 'bar',
+                data: { labels: svcLabels, datasets: [{ data: svcData, backgroundColor: svcData.map((_, i) => colorPalette[i % colorPalette.length]) }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const agents = Object.entries(agentTotals).map(([n,d])=>[n,d.total]).sort((a,b)=>b[1]-a[1]).slice(0,8);
+            const agentLabels = agents.map(a=>a[0]);
+            const agentData = agents.map(a=>a[1]);
+            charts.agent = new Chart(document.getElementById('agentChart'), {
+                type: 'bar',
+                data: { labels: agentLabels, datasets: [{ data: agentData, backgroundColor: agentData.map((_, i) => colorPalette[(i+2) % colorPalette.length]) }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const supp = Object.entries(supplierCounts).sort((a,b)=>b[1]-a[1]);
+            let suppLabels = supp.slice(0,7).map(s=>s[0]);
+            let suppData = supp.slice(0,7).map(s=>s[1]);
+            if (supp.length > 7) {
+                suppLabels.push('Other');
+                suppData.push(supp.slice(7).reduce((acc,cur)=>acc+cur[1],0));
+            }
+            charts.supplier = new Chart(document.getElementById('supplierChart'), {
+                type: 'pie',
+                data: { labels: suppLabels, datasets: [{ data: suppData, backgroundColor: suppLabels.map((_,i)=>colorPalette[(i+3)%colorPalette.length]) }] }
+            });
+
+            const sect = Object.entries(sectorCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+            const sectLabels = sect.map(s=>s[0]);
+            const sectData = sect.map(s=>s[1]);
+            charts.sector = new Chart(document.getElementById('sectorChart'), {
+                type: 'bar',
+                data: { labels: sectLabels, datasets: [{ data: sectData, backgroundColor: sectData.map((_, i) => colorPalette[(i+4) % colorPalette.length]) }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const statuses = ['Completed', 'In Progress', 'Pending', 'Other'];
+            const tatData = statuses.map(s => tatByStatus[s].count ? (tatByStatus[s].sum / tatByStatus[s].count).toFixed(1) : 0);
+            charts.tatStatus = new Chart(document.getElementById('tatStatusChart'), {
+                type: 'bar',
+                data: { labels: statuses, datasets: [{ data: tatData, backgroundColor: statuses.map((_, i) => colorPalette[(i+5) % colorPalette.length]) }] },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            const rangeLabels = Object.keys(tatRanges);
+            const rangeData = Object.values(tatRanges);
+            charts.tatRange = new Chart(document.getElementById('tatRangeChart'), {
+                type: 'bar',
+                data: { labels: rangeLabels, datasets: [{ data: rangeData, backgroundColor: rangeData.map((_, i) => colorPalette[(i+6) % colorPalette.length]) }] },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            const platCompLabels = Object.keys(platformCounts).filter(k => platformCounts[k] > 0);
+            const platCompData = platCompLabels.map(p => platformCounts[p] ? ((platformCounts[p] / totalTasks) * 100).toFixed(1) : 0);
+            charts.completionPlatform = new Chart(document.getElementById('completionPlatformChart'), {
+                type: 'bar',
+                data: { labels: platCompLabels, datasets: [{ label: 'Completion %', data: platCompData, backgroundColor: platCompData.map((_, i) => colorPalette[(i+7) % colorPalette.length]) }] },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            const platTatLabels = Object.keys(platformCounts).filter(k => platformCounts[k] > 0);
+            charts.tatPlatform = new Chart(document.getElementById('tatPlatformChart'), {
+                type: 'bar',
+                data: { labels: platTatLabels, datasets: [{ label: 'Avg TAT (min)', data: platTatLabels.map(()=>0), backgroundColor: platTatLabels.map((_, i) => colorPalette[(i+8) % colorPalette.length]) }] },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            const topServices = Object.entries(serviceCounts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(s=>s[0]);
+            const svcTatData = topServices.map(svc => {
+                const tasks = filteredTasks.filter(t => t.service === svc && t.tatNum !== null);
+                return tasks.length ? (tasks.reduce((acc,t)=>acc+t.tatNum,0)/tasks.length).toFixed(1) : 0;
+            });
+            charts.tatService = new Chart(document.getElementById('tatServiceChart'), {
+                type: 'bar',
+                data: { labels: topServices.map(s=>s.length>12?s.substring(0,10)+'…':s), datasets: [{ label:'Avg TAT (min)', data: svcTatData, backgroundColor: svcTatData.map((_, i) => colorPalette[(i+9) % colorPalette.length]) }] },
+                options: { plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderTopTasks() {
+            filterTopTasks();
+        }
+
+        window.filterTopTasks = function() {
+            const statusFilter = document.getElementById('topTasksFilter').value;
+            let filtered = filteredTasks;
+            if (statusFilter !== 'All') filtered = filtered.filter(t => t.status === statusFilter);
+            filtered = filtered.slice(0,200);
+            let html = '';
+            filtered.forEach(t => {
+                let cls = t.status === 'Completed' ? 'status-completed' : (t.status === 'In Progress' ? 'status-inprogress' : (t.status === 'Pending' ? 'status-pending' : 'status-other'));
+                html += `<tr><td>${t.pnr}</td><td>${t.service}</td><td>${t.agent}</td><td>${t.platform}</td><td><span class="status-badge ${cls}">${t.status}</span></td><td>${t.tat}</td></tr>`;
+            });
+            document.getElementById('topTasksBody').innerHTML = html;
+        };
+
+        function renderSheetTabs() {
+            const tabsDiv = document.getElementById('sheetTabs');
+            tabsDiv.innerHTML = '';
+            const names = Object.keys(sheetsData);
+            names.forEach((name, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+                btn.textContent = name;
+                btn.onclick = () => showSheet(name, sheetsData, 'sheetTableContainer');
+                tabsDiv.appendChild(btn);
+            });
+            if (names.length) showSheet(names[0], sheetsData, 'sheetTableContainer');
+        }
+
+        function renderSpecialStats() {
+            specialTotal = specialTasks.length;
+            specialCompleted = specialTasks.filter(t => t.status === 'Completed').length;
+            specialPending = specialTasks.filter(t => t.status === 'Pending').length;
+            specialOther = specialTotal - specialCompleted - specialPending;
+            document.getElementById('specialKpiContainer').innerHTML = `
+                <div class="special-kpi-card"><div class="kpi-title">Total Tasks</div><div class="kpi-value">${specialTotal}</div></div>
+                <div class="special-kpi-card"><div class="kpi-title">Completed</div><div class="kpi-value">${specialCompleted}</div></div>
+                <div class="special-kpi-card"><div class="kpi-title">Pending</div><div class="kpi-value">${specialPending}</div></div>
+                <div class="special-kpi-card"><div class="kpi-title">Other</div><div class="kpi-value">${specialOther}</div></div>
+            `;
+        }
+
+        function renderSpecialTabs() {
+            const tabsDiv = document.getElementById('specialTabs');
+            tabsDiv.innerHTML = '';
+            const names = Object.keys(specialSheetsData);
+            names.forEach((name, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+                btn.textContent = name;
+                btn.onclick = () => showSheet(name, specialSheetsData, 'specialTableContainer');
+                tabsDiv.appendChild(btn);
+            });
+            if (names.length) showSheet(names[0], specialSheetsData, 'specialTableContainer');
+        }
+
+        function showSheet(sheetName, dataStore, containerId) {
+            document.querySelectorAll(`#${containerId.replace('Container','')} .tab-btn`).forEach(btn => btn.classList.toggle('active', btn.textContent === sheetName));
+            const rows = dataStore[sheetName] || [];
+            if (!rows.length) {
+                document.getElementById(containerId).innerHTML = '<p>No data</p>';
+                return;
+            }
+            let html = '<table><thead><tr>';
+            rows[0].forEach(cell => html += `<th>${cell || ''}</th>`);
+            html += '</tr></thead><tbody>';
+            for (let i=1; i<rows.length; i++) {
+                html += '<tr>';
+                rows[i].forEach(cell => html += `<td>${cell || ''}</td>`);
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // Toggle special section
+        document.getElementById('toggleSpecialBtn').addEventListener('click', function() {
+            const specialSection = document.getElementById('specialSection');
+            specialSection.classList.toggle('hidden');
+            this.innerHTML = specialSection.classList.contains('hidden') 
+                ? '<i class="fas fa-exclamation-triangle"></i> Show VOID / Reissue / Refund Analysis'
+                : '<i class="fas fa-exclamation-triangle"></i> Hide VOID / Reissue / Refund Analysis';
+        });
+
+        // ---------- Export functions ----------
+        document.getElementById('exportPdfBtn').addEventListener('click', async function() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'pt', 'a4');
+            let yOffset = 40;
+
+            // Helper to add text
+            function addText(text, size = 12, isBold = false, x = 40) {
+                pdf.setFontSize(size);
+                pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                pdf.text(text, x, yOffset);
+                yOffset += size * 1.5;
+            }
+
+            // Title
+            addText('Daily Work Report', 24, true);
+            addText(`Generated: ${new Date().toLocaleString()}`, 10);
+            yOffset += 20;
+
+            // KPI summary
+            addText('Key Performance Indicators', 14, true);
+            const kpiData = [
+                ['Total Tasks', totalTasks],
+                ['Completed', completedTasks],
+                ['In Progress', inProgressTasks],
+                ['Pending', pendingTasks],
+                ['Completion %', totalTasks ? ((completedTasks/totalTasks)*100).toFixed(1)+'%' : '0%'],
+                ['Avg TAT (min)', tatByStatus.Completed.count ? (tatByStatus.Completed.sum / tatByStatus.Completed.count).toFixed(1) : '-'],
+                ['Agents Active', Object.keys(agentTotals).length]
+            ];
+            pdf.autoTable({
+                startY: yOffset,
+                head: [['Metric', 'Value']],
+                body: kpiData,
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] },
+                margin: { left: 40, right: 40 }
+            });
+            yOffset = pdf.lastAutoTable.finalY + 30;
+
+            // Charts (as images)
+            addText('Charts', 14, true);
+            yOffset += 10;
+
+            const chartIds = ['dailyStackedChart', 'statusChart', 'platformChart', 'serviceChart', 'agentChart', 'supplierChart'];
+            for (let i = 0; i < chartIds.length; i++) {
+                const canvas = document.getElementById(chartIds[i]);
+                if (!canvas) continue;
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 250;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                // Position two charts per row
+                const xPos = (i % 2 === 0) ? 40 : 300;
+                if (i % 2 === 0) {
+                    // Check if we need a new page
+                    if (yOffset + imgHeight > pdf.internal.pageSize.getHeight() - 40) {
+                        pdf.addPage();
+                        yOffset = 40;
+                    }
+                }
+                pdf.addImage(imgData, 'PNG', xPos, yOffset, imgWidth, imgHeight);
+                if (i % 2 === 1) {
+                    yOffset += imgHeight + 20;
+                }
+            }
+            if (chartIds.length % 2 === 1) yOffset += 200; // adjust for last single chart
+
+            // Agent table
+            pdf.addPage();
+            yOffset = 40;
+            addText('Agent Performance', 14, true);
+            const agentRows = [];
+            Object.keys(agentTotals).sort().forEach(name => {
+                const d = agentTotals[name];
+                const pct = d.total ? ((d.completed / d.total) * 100).toFixed(1) : 0;
+                const avgTat = d.tatCount ? (d.tatSum / d.tatCount).toFixed(1) : '-';
+                agentRows.push([name, d.total, d.completed, d.inProgress, d.pending, pct+'%', avgTat]);
+            });
+            pdf.autoTable({
+                startY: yOffset,
+                head: [['Agent', 'Total', 'Completed', 'In Progress', 'Pending', '% Complete', 'Avg TAT']],
+                body: agentRows,
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] },
+                margin: { left: 40, right: 40 }
+            });
+            yOffset = pdf.lastAutoTable.finalY + 30;
+
+            // Top tasks table
+            addText('Top Tasks', 14, true);
+            const taskRows = filteredTasks.slice(0, 100).map(t => [t.pnr, t.service, t.agent, t.platform, t.status, t.tat]);
+            pdf.autoTable({
+                startY: yOffset,
+                head: [['PNR', 'Service', 'Agent', 'Platform', 'Status', 'TAT']],
+                body: taskRows,
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] },
+                margin: { left: 40, right: 40 }
+            });
+
+            pdf.save('work_report.pdf');
+        });
+
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const wb = XLSX.utils.book_new();
+
+            // Summary sheet
+            const summaryData = [
+                ['Metric', 'Value'],
+                ['Total Tasks', totalTasks],
+                ['Completed', completedTasks],
+                ['In Progress', inProgressTasks],
+                ['Pending', pendingTasks],
+                ['Completion %', totalTasks ? ((completedTasks/totalTasks)*100).toFixed(1)+'%' : '0%'],
+                ['Avg TAT (min)', tatByStatus.Completed.count ? (tatByStatus.Completed.sum / tatByStatus.Completed.count).toFixed(1) : '-'],
+                ['Agents Active', Object.keys(agentTotals).length]
+            ];
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+
+            // Agent sheet
+            const agentRows = [['Agent', 'Total', 'Completed', 'In Progress', 'Pending', '% Complete', 'Avg TAT']];
+            Object.keys(agentTotals).sort().forEach(name => {
+                const d = agentTotals[name];
+                const pct = d.total ? ((d.completed / d.total) * 100).toFixed(1) : 0;
+                const avgTat = d.tatCount ? (d.tatSum / d.tatCount).toFixed(1) : '-';
+                agentRows.push([name, d.total, d.completed, d.inProgress, d.pending, pct+'%', avgTat]);
+            });
+            const agentSheet = XLSX.utils.aoa_to_sheet(agentRows);
+            XLSX.utils.book_append_sheet(wb, agentSheet, 'Agent Performance');
+
+            // Tasks sheet
+            const taskRows = [['PNR', 'Service', 'Agent', 'Platform', 'Status', 'TAT']];
+            filteredTasks.slice(0, 1000).forEach(t => {
+                taskRows.push([t.pnr, t.service, t.agent, t.platform, t.status, t.tat]);
+            });
+            const taskSheet = XLSX.utils.aoa_to_sheet(taskRows);
+            XLSX.utils.book_append_sheet(wb, taskSheet, 'Tasks');
+
+            // Raw data sheets (all main sheets)
+            Object.keys(sheetsData).forEach(sheetName => {
+                const rows = sheetsData[sheetName];
+                if (rows && rows.length) {
+                    const rawSheet = XLSX.utils.aoa_to_sheet(rows);
+                    XLSX.utils.book_append_sheet(wb, rawSheet, sheetName);
+                }
+            });
+
+            XLSX.writeFile(wb, 'work_report.xlsx');
+        });
+
+        // Event listeners
+        document.getElementById('sheetFilter').addEventListener('change', applyFilters);
+        document.getElementById('filterPlatform').addEventListener('change', applyFilters);
+        document.getElementById('filterService').addEventListener('change', applyFilters);
+        document.getElementById('filterStatus').addEventListener('change', applyFilters);
+        document.getElementById('filterAgent').addEventListener('change', applyFilters);
+        document.getElementById('dateFrom').addEventListener('change', applyFilters);
+        document.getElementById('dateTo').addEventListener('change', applyFilters);
+        document.getElementById('globalSearch').addEventListener('input', debounce(applyFilters, 300));
+        document.getElementById('resetFilters').addEventListener('click', function() {
+            document.getElementById('sheetFilter').value = 'All';
+            document.getElementById('filterPlatform').value = 'All';
+            document.getElementById('filterService').value = 'All';
+            document.getElementById('filterStatus').value = 'All';
+            document.getElementById('filterAgent').value = 'All';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('globalSearch').value = '';
+            applyFilters();
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function() { clearTimeout(timeout); timeout = setTimeout(func, wait); };
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('file-info').innerHTML = `<i class="fas fa-check-circle" style="color:#22c55e;"></i> ${file.name}`;
+            document.getElementById('pdfWarning').classList.add('hidden');
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                const data = new Uint8Array(loadEvent.target.result);
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (ext === 'pdf') {
+                    processPDF(data).catch(err => alert('PDF error: ' + err.message));
+                } else {
+                    processExcelCSV(data);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        window.loadGoogleSheet = function() {
+            const url = document.getElementById('googleSheetUrl').value.trim();
+            if (!url) return alert('Enter URL');
+            let exportUrl;
+            if (url.includes('/pub?') || url.includes('output=csv')) exportUrl = url;
+            else {
+                let match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                if (!match) return alert('Invalid Google Sheets URL');
+                exportUrl = `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=0`;
+            }
+            document.getElementById('google-info').innerHTML = '<span class="loader"></span> loading...';
+            fetch(exportUrl)
+                .then(r => r.text())
+                .then(csv => {
+                    const wb = XLSX.read(csv, { type: 'string' });
+                    sheetsData = {};
+                    specialSheetsData = {};
+                    fullData = [];
+                    specialTasks = [];
+                    wb.SheetNames.forEach(sheetName => {
+                        const sheet = wb.Sheets[sheetName];
+                        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                        const special = isSpecialSheet(sheetName);
+                        if (special) {
+                            specialSheetsData[sheetName] = rows.slice(0, 1000);
+                        } else {
+                            sheetsData[sheetName] = rows.slice(0, 1000);
+                        }
+                        processRows(rows, sheetName);
+                    });
+                    finalize();
+                    document.getElementById('google-info').innerHTML = '<i class="fas fa-check-circle" style="color:#22c55e;"></i> loaded';
+                })
+                .catch(e => document.getElementById('google-info').innerHTML = `<i class="fas fa-exclamation-triangle"></i> error: ${e.message}`);
+        };
+
+        window.sortTable = function(col) { /* stub */ };
+        window.sortTasks = function(col) { /* stub */ };
+    })();
+</script>
+</body>
+</html>
